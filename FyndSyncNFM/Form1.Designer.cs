@@ -73,7 +73,7 @@ namespace FyndSyncNFM
             this.Log.Padding = new System.Windows.Forms.Padding(3);
             this.Log.Size = new System.Drawing.Size(504, 401);
             this.Log.TabIndex = 4;
-            this.Log.Text = "Log";
+            this.Log.Text = "Analyzer";
             this.Log.UseVisualStyleBackColor = true;
             this.Log.Enter += new System.EventHandler(this.Log_Enter);
             this.Log.Leave += new System.EventHandler(this.Log_Leave);
@@ -100,6 +100,7 @@ namespace FyndSyncNFM
             // 
             // dataGridViewLog
             // 
+            this.dataGridViewLog.AllowUserToResizeRows = false;
             this.dataGridViewLog.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.dataGridViewLog.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.File,
@@ -146,7 +147,7 @@ namespace FyndSyncNFM
             this.ReplLogTab.Padding = new System.Windows.Forms.Padding(3);
             this.ReplLogTab.Size = new System.Drawing.Size(504, 401);
             this.ReplLogTab.TabIndex = 1;
-            this.ReplLogTab.Text = "ReplLog";
+            this.ReplLogTab.Text = "Log";
             this.ReplLogTab.Enter += new System.EventHandler(this.ReplLogTab_Enter);
             this.ReplLogTab.Leave += new System.EventHandler(this.ReplLogTab_Leave);
             // 
@@ -198,7 +199,7 @@ namespace FyndSyncNFM
             this.errorMessageRepLog.Location = new System.Drawing.Point(9, 55);
             this.errorMessageRepLog.Name = "errorMessageRepLog";
             this.errorMessageRepLog.ReadOnly = true;
-            this.errorMessageRepLog.Size = new System.Drawing.Size(552, 15);
+            this.errorMessageRepLog.Size = new System.Drawing.Size(242, 15);
             this.errorMessageRepLog.TabIndex = 2;
             // 
             // textBoxRepLog
@@ -5168,7 +5169,7 @@ namespace FyndSyncNFM
             this.errorMessageSync.Location = new System.Drawing.Point(9, 51);
             this.errorMessageSync.Name = "errorMessageSync";
             this.errorMessageSync.ReadOnly = true;
-            this.errorMessageSync.Size = new System.Drawing.Size(592, 15);
+            this.errorMessageSync.Size = new System.Drawing.Size(373, 15);
             this.errorMessageSync.TabIndex = 4;
             this.errorMessageSync.Text = "asda";
             // 
@@ -5228,7 +5229,7 @@ namespace FyndSyncNFM
             this.Period.MinimumWidth = 6;
             this.Period.Name = "Period";
             this.Period.ReadOnly = true;
-            this.Period.Width = 140;
+            this.Period.Width = 500;
             // 
             // GridFilePath
             // 
@@ -5244,7 +5245,7 @@ namespace FyndSyncNFM
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(512, 383);
+            this.ClientSize = new System.Drawing.Size(505, 383);
             this.Controls.Add(this.TabContr);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));

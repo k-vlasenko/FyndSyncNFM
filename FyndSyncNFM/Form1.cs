@@ -13,6 +13,11 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Net;
 using System.Text.RegularExpressions;
+using System.Globalization;
+//using DocumentFormat.OpenXml;
+//using DocumentFormat.OpenXml.Packaging;
+//using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.Office.Interop.Excel;
 
 namespace FyndSyncNFM
 {
@@ -23,10 +28,10 @@ namespace FyndSyncNFM
             InitializeComponent();       
 
             dataGridViewLog.Visible = false;
-            dataGridViewLog[0, 0].Value = "kek";
+            dataGridViewLog[0, 0].Value = "   ";
             dataGridViewLog.Rows.Add(12);
             this.Text = "FindSync_v0.4.1.8";
-            Height = 128;
+            Height = 120;
             messageSync.Text = "Введите название и ноду, MARS-Done/ImpEx,FTP-UP/DOWN";
             messageRepLog.Text = "Введите название и ноду";
             //messageFTP.Text = "Введите название, ноду и up/down";
@@ -108,7 +113,7 @@ namespace FyndSyncNFM
             if (inpCheck.Length == 3)
             {
                 // textBoxLog.AppendText("kekega");
-                if (inpCheck[2].ToUpper() == "UP" || inpCheck[2].ToUpper() == "DOWN")
+                if (inpCheck[2].ToUpper() == "UP" || inpCheck[2].ToUpper() == "DOWN" || inpCheck[2].ToUpper() == "FTP")
                 {
                     //  textBoxLog.AppendText("kekega1");
                     if (FindFTPFolder(inp))
@@ -190,7 +195,7 @@ namespace FyndSyncNFM
         private void WriteToGrid(string s, int column)
         {
             int rows = dataGridViewLog.Rows.Count;
-            if (rows <= row) dataGridViewLog.Rows.Add();
+            if (row+1 == rows) dataGridViewLog.Rows.Add(2);
 
             dataGridViewLog[column, row].Value = s;
         }
@@ -431,7 +436,7 @@ namespace FyndSyncNFM
             }
             if (e.KeyChar == (char)27) //ESC key
             {
-                Application.Exit();
+                System.Windows.Forms.Application.Exit();
             }
         }
 
@@ -486,7 +491,7 @@ namespace FyndSyncNFM
             }
             if (e.KeyCode == Keys.Escape) //ESC key
             {
-                Application.Exit();
+                System.Windows.Forms.Application.Exit();
             }
 
         }
@@ -499,7 +504,7 @@ namespace FyndSyncNFM
             }
             if (e.KeyCode == Keys.Escape)
             {
-                Application.Exit();
+                System.Windows.Forms.Application.Exit();
             }
 
         }
@@ -649,6 +654,10 @@ namespace FyndSyncNFM
                         if (Directory.Exists(dir.FullName + @"\Replication.Shuttle\Logs\Production"))
                         {
                             f = f || AnalyzeLogDir(dir.FullName + @"\Replication.Shuttle\Logs\Production", Int32.Parse(node), Int32.Parse(add));
+                            if (!f)
+                            {
+                                f = f || AnalyzeLogDir(dir.FullName + @"\Replication.Shuttle\Logs", Int32.Parse(node), Int32.Parse(add));
+                            }
                         }
                         else
                         {
@@ -695,12 +704,41 @@ namespace FyndSyncNFM
             string distrib = splitName[0].ToUpper();
             int node = Int32.Parse(splitName[1]);
             string mod = splitName[2].ToUpper();
-
+            //textBoxLog.AppendText(splitName[0] + " " + splitName[1] + "\n");
 
             var aliases = AliasesInit();
             distrib = AliasesCheck(distrib, aliases);
 
             DirectoryInfo FTPDir;
+
+            if(mod.ToUpper() == "FTP")
+            {
+                if (Directory.Exists(@"\\ST-FiLES.mtproject.ru\FTP\FTP_HOUSTON\MT"))
+                {
+                    FTPDir = new DirectoryInfo(@"\\ST-FiLES.mtproject.ru\FTP\FTP_HOUSTON\MT");
+                    foreach(DirectoryInfo d in FTPDir.GetDirectories())
+                    {
+                        string[] dirSplitName = d.Name.Split(separators);
+                        
+                        if(dirSplitName.Length >= 3)
+                        {
+                            //textBoxLog.AppendText(dirSplitName[0] + " " + dirSplitName[2] + "\n");
+                            if (dirSplitName[0].ToUpper() == distrib.ToUpper() && dirSplitName[2] == splitName[1])
+                            {
+                                OpenFolder(d.FullName);
+                                return true;
+                            }
+                        }
+                    }
+
+                }
+                else
+                {
+                    errorMessageSync.Text = "Ошибка! Каталог FTP не найден.";
+                    return false;
+                }
+            }
+
             if (Directory.Exists(@"\\" + distrib + @"-nsf.mtproject.ru\FTP"))
             {
                 FTPDir = new DirectoryInfo(@"\\" + distrib + @"-nsf.mtproject.ru\FTP");
@@ -711,13 +749,13 @@ namespace FyndSyncNFM
                 return false;
             }
 
-
-            FTPDir = FindDirectory(FTPDir, mod);
-            if (FTPDir == null)
+            DirectoryInfo tmpDir = FindDirectory(FTPDir, mod);
+            if (tmpDir == null)
             {
-                //textBoxLog.Text = "Ошибка! Каталог FTP не найден.";
-                return false;
+                tmpDir = FindDirectory(FTPDir, "y"+mod);
+                if (tmpDir == null) return false;
             }
+            FTPDir = tmpDir;
             //textBoxLog.AppendText(FTPDir.FullName);
             bool f = false;
 
@@ -733,7 +771,13 @@ namespace FyndSyncNFM
             return f;
         }
 
-        public async Task AnalyzeXMLQuick(string path)
+        
+        private void AnalyzeXLS(string path)
+        {
+
+        }
+
+        private async Task AnalyzeXMLQuick(string path)
         {
             WriteToGrid(path, 3);
             TabContr.SelectTab(Log);
@@ -759,6 +803,35 @@ namespace FyndSyncNFM
 
             foreach (XElement node in doc.Root.Descendants())
             {
+                //textBoxLog.AppendText(node.FirstAttribute.ToString());
+                foreach(XAttribute at in node.Attributes())
+                {
+                    //textBoxLog.AppendText(at.Name.ToString());
+                    if (at.Name.ToString().ToLower() == "dateto" || at.Name.ToString().ToLower() == "date")
+                    {
+                        
+                        DateTime.TryParse(at.Value, out DateTime d);
+                        bool f = false;
+                        foreach (DateTime n in dateTimes)
+                        {
+                            if (n.Date == d.Date)
+                            {
+                                f = true;
+                                break;
+                            }
+                        }
+                        if (!f)
+                        {
+                            dateTimes[cnt] = d;
+                            cnt++;
+                        }
+                        if (DateTime.Compare(maxDate, d) <= 0)
+                        {
+                            maxDate = d;
+                        }
+                    }
+                }
+
                 //AddText(node.Name.LocalName);
                 if (node.Name.LocalName.ToLower() == "date" || node.Name.LocalName.ToLower() == "period")
                 {
@@ -813,7 +886,7 @@ namespace FyndSyncNFM
             //errorMessageXML.Text = dateList.First().ToString("dd.MM.yyyy") + " - " + dateList.Last().ToString("dd.MM.yyyy");
         }
 
-        public async Task AnalyzeXML(string path)
+        private async Task AnalyzeXML(string path)
         {
             //dataGridViewLog.Visible = false;
             WriteToGrid(path, 3);
@@ -830,6 +903,8 @@ namespace FyndSyncNFM
             {
                 files = new DirectoryInfo(path).GetFiles();
             }
+
+            //textBoxLog.AppendText(DateTime.TryParse("20210505",out DateTime ttt).ToString());
 
             foreach (FileInfo x in files)
             {
@@ -850,6 +925,38 @@ namespace FyndSyncNFM
 
                 foreach (XElement node in doc.Root.Descendants())
                 {
+                    //textBoxLog.AppendText(node.FirstAttribute.ToString());
+                    foreach (XAttribute at in node.Attributes())
+                    {
+                        //textBoxLog.AppendText(at.Name.ToString());
+                        if (at.Name.ToString().ToLower() == "dateto" || at.Name.ToString().ToLower() == "date" || at.Name.ToString().ToLower() == "dtlm")
+                        {
+
+                            if (DateTime.TryParse(at.Value, out DateTime d)) ;
+                            else DateTime.TryParseExact(at.Value, "yyyyMMdd hh:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out d);
+
+                                bool f = false;
+                            foreach (DateTime n in dateTimes)
+                            {
+                                if (n.Date == d.Date)
+                                {
+                                    f = true;
+                                    break;
+                                }
+                            }
+                            if (!f)
+                            {
+                                dateTimes[cnt] = d;
+                                cnt++;
+                            }
+                            if (DateTime.Compare(maxDate, d) <= 0)
+                            {
+                                maxDate = d;
+                            }
+                            continue;
+                        }
+                    }
+
                     //AddText(node.Name.LocalName);
                     if (node.Name.LocalName.ToLower() == "date" || node.Name.LocalName.ToLower() == "period")
                     {
@@ -1116,7 +1223,7 @@ namespace FyndSyncNFM
 
         private void Log_Leave(object sender, EventArgs e)
         {
-            Height = 128;
+            Height = 120;
         }
 
         private void ButtonLogClear_Click(object sender, EventArgs e)
@@ -1128,6 +1235,11 @@ namespace FyndSyncNFM
         }
 
 
+        private void AnalyzeXLSX(string path)
+        {
+           
+        }
+
         private async void DragAndDrop(string[] files)
         {
             TabContr.SelectTab(Log);
@@ -1137,7 +1249,15 @@ namespace FyndSyncNFM
                 string ext = Path.GetExtension(s).ToLower();
                 //|| regex.IsMatch(Path.GetExtension(s).ToLower())
                 textBoxLog.AppendText(Path.GetFileName(s) + "\r\n");
-                if (Path.GetExtension(s).ToLower() == ".xml" || Directory.Exists(s))
+
+                /*
+                if (Path.GetExtension(s).ToLower() == ".xlsx")
+                {
+                    AnalyzeXLSX(s);
+                }
+                */
+
+                    if (Path.GetExtension(s).ToLower() == ".xml" || Directory.Exists(s))
                 {
                     //textBoxXML.Text = s;
                     //ButtonXML_Click(null, null);
@@ -1265,18 +1385,22 @@ namespace FyndSyncNFM
 
             System.IO.File.Move(Directory.GetCurrentDirectory() + @"\fs.exe", current);
 
-            Application.Restart();
+            System.Windows.Forms.Application.Restart();
 
         }
 
         private void dataGridViewLog_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
             //dataGridViewLog[e.ColumnIndex, e.RowIndex].Value = "kek";
-            string path = dataGridViewLog[3, e.RowIndex].Value.ToString();
-            if (System.IO.File.Exists(path))
+            if(dataGridViewLog[3, e.RowIndex].Value != null)
             {
-                OpenFile(path);
+                string path = dataGridViewLog[3, e.RowIndex].Value.ToString();
+                if (System.IO.File.Exists(path))
+                {
+                    OpenFile(path);
+                }
             }
+            
         }
     }
 }
