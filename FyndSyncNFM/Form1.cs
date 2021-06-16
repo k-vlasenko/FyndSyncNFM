@@ -323,7 +323,12 @@ namespace FyndSyncNFM
                     {
                         string[] subs = d.Name.Split(separators, StringSplitOptions.RemoveEmptyEntries);
                         //AddText(subs[0]);
-                        if (Int32.TryParse(subs[0], out int val))
+                        bool nodeCheck = false;
+                        int val=0;
+                        nodeCheck = Int32.TryParse(subs[0], out val);
+                        if (!nodeCheck && subs.Length > 1) nodeCheck = Int32.TryParse(subs[1], out val);
+                        
+                        if (nodeCheck)
                         {
                             if (val == Convert.ToInt32(node))
                             {
