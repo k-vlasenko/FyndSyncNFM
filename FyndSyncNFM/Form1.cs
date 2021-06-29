@@ -30,7 +30,10 @@ namespace FyndSyncNFM
             dataGridViewLog.Visible = false;
             dataGridViewLog[0, 0].Value = "   ";
             dataGridViewLog.Rows.Add(12);
-            this.Text = "FindSync_v0.4.1.9";
+            
+            this.Text = "FindSync_v0.4.2.1";
+            version = 0421; //для проверки обновлений
+
             Height = 120;
             messageSync.Text = "Введите название и ноду, MARS-Done/ImpEx,FTP-UP/DOWN";
             messageRepLog.Text = "Введите название и ноду";
@@ -39,10 +42,12 @@ namespace FyndSyncNFM
             errorMessageRepLog.Text = "";
             //errorMessageFTP.Text = "";
             string input = "";
+            CheckForUpdates();
         }
 
         private int row = 0;
         private string input;
+        int version = 0419;
 
         private void ButtonSync_Click(object sender, EventArgs e)
         {
@@ -1396,6 +1401,55 @@ namespace FyndSyncNFM
         private void buttonLogSwitch_Click(object sender, EventArgs e)
         {
             dataGridViewLog.Visible = !dataGridViewLog.Visible;
+        }
+
+
+        private void DownloadFileCallback(object sender, AsyncCompletedEventArgs e)
+        {
+            
+            if (e.Cancelled)
+            {
+                Console.WriteLine("File download cancelled.");
+            }
+            //textBoxLog.AppendText("KEKW");
+            string tmp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\" + "FindSyncVersion.xml";
+            try
+            {
+                XDocument versionFile = XDocument.Load(tmp);
+                var node = versionFile.Root.Descendants();
+                foreach (XElement x in node)
+                {
+                    if (x.Name.LocalName.ToLower() == "version" && Int32.Parse(x.Value) > version)
+                    {
+                        errorMessageSync.Text = "Доступно новое обновление";
+                        textBoxSync.Text = "Доступно новое обновление";
+                    }
+                }
+            }
+            catch
+            {
+                errorMessageSync.Text = "Не удалось проверить наличие обновлений";
+            }
+            
+            
+        }
+
+        private async void CheckForUpdates()
+        {
+            string tmp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\" + "FindSyncVersion.xml";
+            Uri webResource = new Uri("https://www.dropbox.com/s/uqb2cvpfru9wnuf/FindSyncVersion.xml?dl=1");
+            //string webResource = @"https://www.dropbox.com/s/uqb2cvpfru9wnuf/FindSyncVersion.xml?dl=1";
+            WebClient myWebClient = new WebClient();
+            try
+            {
+                myWebClient.DownloadFileCompleted += new AsyncCompletedEventHandler(DownloadFileCallback);
+                myWebClient.DownloadFileAsync(webResource, tmp);
+            }
+            catch
+            {
+                errorMessageSync.Text = "Не удалось проверить наличие обновлений";
+            }
+            
         }
 
         private void ButtonUpdate_Click(object sender, EventArgs e)
