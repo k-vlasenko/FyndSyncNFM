@@ -25,12 +25,12 @@ namespace FyndSyncNFM
     {
         public Form1()
         {
-            InitializeComponent();       
-
+            InitializeComponent();
+            textBoxLog.Text = "Перетащи файл\r\n";
             dataGridViewLog.Visible = false;
             dataGridViewLog[0, 0].Value = "   ";
             dataGridViewLog.Rows.Add(12);
-            this.Text = "FindSync_v0.4.1.8";
+            this.Text = "FindSync_v0.4.1.9";
             Height = 120;
             messageSync.Text = "Введите название и ноду, MARS-Done/ImpEx,FTP-UP/DOWN";
             messageRepLog.Text = "Введите название и ноду";
@@ -471,6 +471,40 @@ namespace FyndSyncNFM
                 new Tuple<string, string> ("BP", "BritishPetroleum"),
 
                 new Tuple<string, string> ("MDLZ", "Mondelez"),
+
+                new Tuple<string, string> ("ADDINOL", "Адинол"),
+                new Tuple<string, string> ("AFANASY", "Афанасий"),
+                new Tuple<string, string> ("ALADUSHKIN", "Аладушкин"),
+                new Tuple<string, string> ("ALADUSHKIN", "ПМК"),
+                new Tuple<string, string> ("AST", "Аст"),
+                new Tuple<string, string> ("BASHSPIRT", "Башспирт"),
+                new Tuple<string, string> ("BAT", "Бат"),
+                new Tuple<string, string> ("BELOGORYE", "Белогорье"),
+                new Tuple<string, string> ("BOCHKARI", "Бочкари"),
+                new Tuple<string, string> ("BP", "БП"),
+                new Tuple<string, string> ("BRISTOL", "Бристоль"),
+                new Tuple<string, string> ("CCH", "Кола"),
+                new Tuple<string, string> ("CHERKIZOVO", "Черкизово"),
+                new Tuple<string, string> ("EKF", "ЕКФ"),
+                new Tuple<string, string> ("HEINZ", "Хайнц"),
+                new Tuple<string, string> ("HK", "ХК"),
+                new Tuple<string, string> ("INFOTECH", "Инфотех"),
+                new Tuple<string, string> ("LAVR", "Лавр"),
+                new Tuple<string, string> ("LUKOIL", "Лукойл"),
+                new Tuple<string, string> ("MARS", "Марс"),
+                new Tuple<string, string> ("MAY", "Май"),
+                new Tuple<string, string> ("MDLZ", "Мдлз"),
+                new Tuple<string, string> ("MDLZ", "Монделиз"),
+                new Tuple<string, string> ("MOSBREW", "Мосбрю"),
+                new Tuple<string, string> ("NMGK", "НМЖК"),
+                new Tuple<string, string> ("ROUST", "РУСТ"),
+                new Tuple<string, string> ("ROUST", "РА"),
+                new Tuple<string, string> ("RUSKLIMAT", "Русклимат"),
+                new Tuple<string, string> ("SHELL", "Шелл"),
+                new Tuple<string, string> ("SOKOLOV", "Соколов"),
+                new Tuple<string, string> ("SPLAT", "Сплат"),
+                new Tuple<string, string> ("UNICA", "Юника"),
+                new Tuple<string, string> ("VELKOM", "Велком")
 
 
             };
@@ -1406,6 +1440,27 @@ namespace FyndSyncNFM
                 }
             }
             
+        }
+
+        private void buttonCheckBoxLog_Click(object sender, EventArgs e)
+        {
+            checkBoxLog.Checked = true;
+            RepLogButton_Click(sender, e);
+            checkBoxLog.Checked = false;
+        }
+
+        private void buttonCheckBoxFolder_Click(object sender, EventArgs e)
+        {
+            checkBoxFolder.Checked = true;
+            RepLogButton_Click(sender, e);
+            checkBoxFolder.Checked = false;
+        }
+
+        private void buttonCheckBoxSheduler_Click(object sender, EventArgs e)
+        {
+            CheckBoxScheduler.Checked = true;
+            RepLogButton_Click(sender, e);
+            CheckBoxScheduler.Checked = false;
         }
     }
 }
