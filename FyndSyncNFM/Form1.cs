@@ -17,7 +17,8 @@ using System.Globalization;
 //using DocumentFormat.OpenXml;
 //using DocumentFormat.OpenXml.Packaging;
 //using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.Office.Interop.Excel;
+//using Microsoft.Office.Interop.Excel;
+using System.Diagnostics;
 
 namespace FyndSyncNFM
 {
@@ -31,8 +32,8 @@ namespace FyndSyncNFM
             dataGridViewLog[0, 0].Value = "   ";
             dataGridViewLog.Rows.Add(12);
             
-            this.Text = "FindSync_v0.4.2.1";
-            version = 0421; //для проверки обновлений
+            this.Text = "FindSync_v0.4.2.2";
+            version = 0422; //для проверки обновлений
 
             Height = 120;
             messageSync.Text = "Введите название и ноду, MARS-Done/ImpEx,FTP-UP/DOWN";
@@ -42,7 +43,11 @@ namespace FyndSyncNFM
             errorMessageRepLog.Text = "";
             //errorMessageFTP.Text = "";
             string input = "";
+            
+            //foreach (string a in Environment.GetCommandLineArgs()) textBoxLog.AppendText(a + "\n");
+            
             CheckForUpdates();
+
         }
 
         private int row = 0;
@@ -1406,7 +1411,16 @@ namespace FyndSyncNFM
 
         private void DownloadFileCallback(object sender, AsyncCompletedEventArgs e)
         {
-            
+            if (Environment.GetCommandLineArgs().Length > 1)
+            {
+                if (Environment.GetCommandLineArgs()[1] == @"-update")
+                {
+                    errorMessageSync.Text = "Получена версия #" + version.ToString("D4");
+                    buttonChangelog.Visible = true;
+                }
+            }
+
+
             if (e.Cancelled)
             {
                 Console.WriteLine("File download cancelled.");
@@ -1477,10 +1491,26 @@ namespace FyndSyncNFM
             }
 
             System.IO.File.Move(Directory.GetCurrentDirectory() + @"\fs.exe", current);
-
-            System.Windows.Forms.Application.Restart();
+            Restart();
+            //System.Windows.Forms.Application.Restart();
 
         }
+
+
+        public static void Restart()
+        {
+            ProcessStartInfo startInfo = Process.GetCurrentProcess().StartInfo;
+            startInfo.FileName = Application.ExecutablePath;
+            //var args = Environment.GetCommandLineArgs().Skip(1);
+            //var newArgs = string.Join(" ", args.Where(x => x != @"/x").Select(x => @"""" + x + @""""));
+            startInfo.Arguments += "-update";
+            var exit = typeof(Application).GetMethod("ExitInternal",
+                                System.Reflection.BindingFlags.NonPublic |
+                                System.Reflection.BindingFlags.Static);
+            exit.Invoke(null, null);
+            Process.Start(startInfo);
+        }
+
 
         private void dataGridViewLog_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -1515,6 +1545,27 @@ namespace FyndSyncNFM
             CheckBoxScheduler.Checked = true;
             RepLogButton_Click(sender, e);
             CheckBoxScheduler.Checked = false;
+        }
+
+        private void buttonChangelog_Click(object sender, EventArgs e)
+        {
+            TabContr.SelectTab(Log);
+            buttonChangelog.Visible = false;
+
+            string tmp = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\" + "FindSyncVersion.xml";
+            XDocument versionFile = XDocument.Load(tmp);
+            var node = versionFile.Root.Descendants();
+            foreach (XElement x in node)
+            {
+                if (x.Name.LocalName.ToLower() == "changelog")
+                {
+                    textBoxLog.Text = "";
+                    char[] separators = { '\n' };
+                    string[] spilited = x.Value.Split(separators, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (string s in spilited) textBoxLog.AppendText(s + "\r\n");
+                    //textBoxLog.AppendText(x.Value);
+                }
+            }
         }
     }
 }
